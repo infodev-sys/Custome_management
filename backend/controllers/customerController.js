@@ -15,36 +15,61 @@ exports.getCustomers = async (req, res, next) => {
 };
 
 exports.createCustomer = async (req, res, next) => {
-  try {
-    const { name, email, phone } = req.body;
+ try {
 
-    if (!name || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields required",
-      });
-    }
+  const { name, email, phone } = req.body;
 
-    const customers = await getCustomers();
-
-    const newCustomer = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      phone,
-    };
-
-    customers.push(newCustomer);
-
-    await saveCustomers(customers);
-
-    res.status(201).json({
-      success: true,
-      data: newCustomer,
+  if (!name || !email || !phone) {
+    return res.status(400).json({
+      success: false,
+      errors: {
+        name: !name ? "Name is required" : "",
+        email: !email ? "Email is required" : "",
+        phone: !phone ? "Phone is required" : ""
+      }
     });
-  } catch (err) {
-    next(err);
   }
+
+  const customers = await getCustomers();
+
+  // 🔴 Duplicate check
+  const emailExists = customers.find(
+    c => c.email.toLowerCase() === email.toLowerCase()
+  );
+
+  const phoneExists = customers.find(
+    c => c.phone === phone
+  );
+
+  if (emailExists || phoneExists) {
+    return res.status(409).json({
+      success: false,
+      errors: {
+        email: emailExists ? "Email already exists" : "",
+        phone: phoneExists ? "Phone already exists" : ""
+      }
+    });
+  }
+
+  const newCustomer = {
+    id: crypto.randomUUID(),
+    name,
+    email,
+    phone
+  };
+
+  customers.push(newCustomer);
+
+  await saveCustomers(customers);
+
+  res.status(201).json({
+    success: true,
+    data: newCustomer
+  });
+
+ } catch (err) {
+  next(err);
+ }
 };
 
 exports.deleteCustomer = async (req, res, next) => {
