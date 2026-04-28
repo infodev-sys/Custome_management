@@ -1,0 +1,10 @@
+{
+  "customers": [
+    {
+      "id": "fc246606-bfca-4602-bfe1-088a0413c37b",
+      "name": "Dev",
+      "email": "dev@test.com",
+      "phone": "9999999999"
+    }
+  ]
+}
